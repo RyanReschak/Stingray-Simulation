@@ -79,15 +79,23 @@ Running another gazebo world is as easy as passing a world argument to whatever 
 
 All worlds run this way need to be placed in the worlds/ directory of the stingray_sim package. 
 
+## Running the Maze Gazebo World for Wall Following Project
 
+The maze world is designed for wall following project in HCR class. In this world, the triton is equipped with a lidar on it to sense the distances from its surroundings.
+
+`roslaunch stingray_sim wall_following_v1.launch`
 
 # Using the Simulation
 
 ## Sending Move Commands
 
-To make the robot move in the simulation, open another terminal, source ROS root like above, and publish to the /triton/vel_cmd topic. To do this, you must tab complete the last portion of the command for it to be formatted correctly and then change the x, y, and theta values to the desired setpoints.
+To make the robot move in the simulation, open another terminal, source ROS root like above. If you are launching a basic Triton without lidar, publish to the /triton/vel_cmd topic. If you are launching a Triton equipped with a lidar, publish to the /triton_lidar/vel_cmd topic. To do this, you must tab complete the last portion of the command for it to be formatted correctly and then change the x, y, and theta values to the desired setpoints.
 
 `rostopic pub /triton/vel_cmd geometry_msgs/Pose2D <tab>`
+
+or
+
+`rostopic pub /triton_lidar/vel_cmd geometry_msgs/Pose2D <tab>`
 
 You can press Ctrl+C to end the current message and can retype the command to send a new one. 
 
