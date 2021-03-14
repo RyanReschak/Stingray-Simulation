@@ -121,11 +121,13 @@ In RViz, alter the Global Options Fixed Frame paramenter to be 'triton_link'
 
 Add an Image to the displays with the 'Add' button on the lower left of the screen. Configure the Image Topic to be '/camera/color/image_raw'. You should be able to see an image of the robots view in the window in the lower left.  
 
+<!---
 ### Visualizing Point Cloud Data 
 
 In RViz, alter the Global Options Fixed Frame paramenter to be 'triton_link'
 
 Add a PointCloud2 to the displays with the 'Add' button on the lower left of the screen. Configure the Topic to be 'camera/depth/points'. 3D Point cloud data should now be up showing up in the 3D pane.  
+-->
 
 ### Visualize Path Data
 
@@ -157,6 +159,7 @@ Add a Map to the displays with the 'Add' button on the lower left of the screen.
 # Known Issues
 - If you run a gazebo instance and then close it, it may still be running in the background. Kill the gzserver and gzclient processes from the terminal if a new instance of gazebo wont load because of this. 
 - Sometimes adding/deleting models into the world crashes gazebo. 
+- Visualization of point clouds does not work with wall_following_v1.launch.
 <!---
 - The slam mapping feature has a bug related to its frame of reference, which results in maps that look placed on the plane disconnected. 
 -->
