@@ -77,8 +77,8 @@ def main():
 
     rospy.init_node("wall_follower", anonymous=True)
     #reset the gazebo world first
-    reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
-    reset_world()
+    #reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
+    #reset_world()
 
     pub = rospy.Publisher("triton_lidar/vel_cmd", Pose2D, queue_size=1)
     rospy.Subscriber("scan", LaserScan, laser_interpretor)
