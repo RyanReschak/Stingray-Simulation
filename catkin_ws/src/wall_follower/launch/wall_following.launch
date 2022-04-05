@@ -1,6 +1,7 @@
 <launch>
     <arg name="world_file" default="worlds/largemaze-triton-lidar.world"/>
-  
+    <arg name="q_type" default="learn"/> 
+ 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
       <arg name="use_sim_time" value="true"/>
       <arg name="debug" value="false "/>  <!-- false for real training, true for debugging -->
@@ -17,5 +18,5 @@
 
     <node pkg="stingray_sim" name="path_drawing" type="draw_path.py"/>
 
-    <node pkg="wall_follower" name="wall_follower" type="wall_follower.py"/>
+    <node pkg="wall_follower" name="wall_follower" type="wall_follower.py" args="$(arg q_type)"/>
 </launch>
