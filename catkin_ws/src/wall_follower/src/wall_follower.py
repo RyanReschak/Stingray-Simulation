@@ -16,6 +16,7 @@ from tf.transformations import quaternion_from_euler
 
 #q_table location stored
 #q_file = './src/wall_follower/src/q_learning2.csv'
+#This is the best Q table file
 q_file = './q_learning2.csv'
 
 def laser_interpretor(msg):
@@ -213,10 +214,10 @@ def main(argv):
     
     #Step 1: Init Q table with 27 states and 3 actions
     if (argv[0] == "learn"):
-        #q_table = init_q_table(27, 3)
-        #q_table = q_premade(q_table)
-
-        q_table = load_q_table()
+        q_table = init_q_table(27, 3)
+        q_table = q_premade(q_table)
+        q_file = "q_new.csv"
+        #q_table = load_q_table()
         rospy.loginfo("User Choose Learning") 
     else:
         q_table = load_q_table()

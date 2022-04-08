@@ -18,5 +18,5 @@
 
     <node pkg="stingray_sim" name="path_drawing" type="draw_path.py"/>
 
-    <node pkg="wall_follower" name="wall_follower" type="wall_follower.py" args="$(arg q_type)"/>
+    <node pkg="wall_follower" name="wall_follower" type="wall_follower.py" args="$(arg q_type)" cwd="node"/>
 </launch>
