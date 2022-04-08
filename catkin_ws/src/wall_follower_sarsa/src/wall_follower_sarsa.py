@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #Ryan Reschak
-#Description: Using Q-Learning, trains model to get close to a wall while
+#Description: Using SARSA Q-Learning, trains model to get close to a wall while
 #moving along the wall
 
 import sys
@@ -15,8 +15,8 @@ from gazebo_msgs.srv import SetModelState
 from tf.transformations import quaternion_from_euler
 
 #q_table location stored
-#q_file = './src/wall_follower/src/q_learning2.csv'
-q_file = './q_learning2.csv'
+q_file = './src/wall_follower_sarsa/src/q_learning.csv'
+#q_file = './q_learning2.csv'
 
 def laser_interpretor(msg):
     global state_now
@@ -24,13 +24,13 @@ def laser_interpretor(msg):
     dist_angles = []
     #average of +45 and -45 degrees (the right side)
     #dist_angles.append((sum(msg.ranges[0:15])+sum(msg.ranges[345:360]))/30.0)
-    dist_angles.append(min([min(msg.ranges[0:15]), min(msg.ranges[315:360])]))
+    dist_angles.append(min([min(msg.ranges[0:15]), min(msg.ranges[345:360])]))
     #average of +45 to +135 degrees (front side)
     #dist_angles.append(sum(msg.ranges[75:106])/30.0)
-    dist_angles.append(min(msg.ranges[75:106]))
+    dist_angles.append(min(msg.ranges[70:111]))
     #average of 135 to 225 degrees (the left side)
     #dist_angles.append(sum(msg.ranges[165:196])/30.0) 
-    dist_angles.append(min(msg.ranges[165:226]))
+    dist_angles.append(min(msg.ranges[165:196]))
 
     #calculate state. Wall distances Very, Medium, Far closeness
     arr_state = []
@@ -40,7 +40,9 @@ def laser_interpretor(msg):
     for i in range(len(dist_angles)):
         if (i == 1):
             #Front wall
-            opt_dist_wall = 1
+            #opt_dist_wall = 1
+            #tolerance = 0.5
+            opt_dist_wall = 0.75
             tolerance = 0.5
         if (i == 2):
             #Left wall
@@ -89,8 +91,8 @@ def reward_function(state, stuck):
         return 1 #Just Right amount of distance
     return -1 - stuck #exceptable
 
-def q_value(q_table, state, action, reward, next_state, l_rate, dis_rate):
-    return (1-l_rate)*q_table[state,action] + l_rate*(reward+dis_rate*max(q_table[next_state]))
+def q_value(q_table, state, action, reward, next_state, next_action, l_rate, dis_rate):
+    return q_table[state,action] + l_rate*(reward+dis_rate*(q_table[next_state, next_action] - q_table[state,action]))
 
 def q_premade(q_table):
     #Premade Q-Table for D1
@@ -148,11 +150,11 @@ def test_pose(episode):
     #Will choose the location to test based on the epiosde
     n = episode % 3
     if (n == 0):
-        return [[3,0],1.5707] #should go around the L
+        return [[2,3],1.5707] #should go around the L
     elif (n == 2):
         return [[1,-1],0] 
     elif (n == 1):
-        return [[-1,-1], 1.5707] #should go around the I
+        return [[-1,-1], -1.5707] #should go around the I
     elif (n == 3):
         return [[-2,2], 3.14]
 
@@ -174,12 +176,12 @@ def get_position(gazebo_get_pose_func):
     state = gazebo_get_pose_func(model_name='triton_lidar')
     return numpy.array([state.pose.position.x, state.pose.position.y, state.pose.position.z]) 
 
-def check_termination(q_table, stuck_inc, steps, max_steps):
+def check_termination(q_table, stuck_inc, steps, max_steps, max_stuck):
     #Save q_table regardless
     save_q_table(q_table)
     
     #Check to see if stuck
-    if (stuck_inc >= 3):
+    if (stuck_inc >= max_stuck):
         return True    
 
     #Check to see if steps is greater than size
@@ -242,13 +244,15 @@ def main(argv):
             #Set and get new position
             ori = None
             pos = None
+            max_stuck = 0
             if (argv[0] == "learn"):
                 #Update epsilon
                 epsilon = eps_o*d**episode
-
+                max_stuck = 3
                 pos = gen_pos();
                 ori = gen_ori();
             else:
+                max_stuck = 10
                 epsilon = 0
                 max_steps = 6000
                 test_obj = test_pose(episode);
@@ -260,12 +264,14 @@ def main(argv):
             #Set step and stuck count
             step = 0
             stuck_inc = 0
-
+             
+            #Step 2 Select action based on current state
+            current_state = state_now
+            
+            #Step 3: Select action
+            action = select_action(q_table[current_state], epsilon)
             while not terminate:
-                #Step 2: Set current state (assumes that the state_now was updated in subscriber)
-                current_state = state_now
-                #Step 3: Get next action
-                action = select_action(q_table[current_state], epsilon)
+                
                 rospy.loginfo("The action chosen %d with state %d", action, current_state) 
                 #Step 4: Execute Action based on current_state
                 cmd = Pose2D() 
@@ -287,20 +293,26 @@ def main(argv):
                 pub.publish(cmd)
 
                 rate.sleep()
-
-                #Update Q table
                 
+                #Step 5: Choose A' from S'
+                state_next = state_now
+                action_next = select_action(q_table[state_next], epsilon)
+                
+                #Step 6: Update Q table
                 if ( argv[0] == "learn" ):
-                    state_next = state_now
                     reward = reward_function(state_next, stuck_inc)
-                    q_table[current_state, action] = q_value(q_table, current_state, action, reward, state_next, l_rate, dis_rate)
-                
+                    q_table[current_state, action] = q_value(q_table, current_state, action, reward, state_next, action_next, l_rate, dis_rate)
+               
+                #Step 7: S = S' and A = A'
+                current_state = state_next
+                action = action_next
+
                 #Check for Termination
                 current_pos = get_position(get_bot_position)
                 if (numpy.allclose(current_pos, prev_pos, atol=10e-4)):
                     stuck_inc += 1
                 prev_pos = current_pos
-                terminate = check_termination(q_table, stuck_inc, step, max_steps)
+                terminate = check_termination(q_table, stuck_inc, step, max_steps, max_stuck)
                 step += 1
                 rospy.loginfo("Step: %d. Stuck: %d", step, stuck_inc) 
         
