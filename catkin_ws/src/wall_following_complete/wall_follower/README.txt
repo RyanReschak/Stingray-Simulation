@@ -7,6 +7,9 @@ pip install numpy
 To see this in action do the following:
 Make sure to do a catkin_make and source devel/setup.bash:
 
-roslaunch wall_follower wall_following.launch
+roslaunch wall_follower wall_following.launch q_type:=[test or learn]
+
+q_type:=test => tests on the best file
+q_type:=learn => learn from scratch
 
 You can try running wall_following a few times to see different results
