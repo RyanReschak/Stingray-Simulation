@@ -17,7 +17,9 @@ from tf.transformations import quaternion_from_euler
 #q_table location stored
 #q_file = './src/wall_follower_sarsa/src/q_learning.csv'
 #This is the best file
-q_file = './q_learning.csv'
+#q_file = './q_learning.csv'
+q_file = './q_new.csv'
+reward_file = './reward_sarsa_expert.csv'
 
 def laser_interpretor(msg):
     global state_now
@@ -191,6 +193,12 @@ def check_termination(q_table, stuck_inc, steps, max_steps, max_stuck):
     
     return False
 
+def init_experiment_table(num_episodes):
+    return numpy.zeros(shape=(num_episodes,3))
+
+def save_experiment_results(table):
+    numpy.savetxt(reward_file, table, delimiter=',')
+
 def main(argv):
     if (len(argv) == 0):
         print("No arguments provided")
@@ -214,12 +222,18 @@ def main(argv):
     freq = 30
     rate = rospy.Rate(freq)
     
+    #Create epsiodes and their length
+    episodes = 1000
+    max_steps = 3000
+
+    exp_table = init_experiment_table(episodes)
+    
     #Step 1: Init Q table with 27 states and 3 actions
     if (argv[0] == "learn"):
-        #q_table = init_q_table(27, 3)
-        #q_table = q_premade(q_table)
+        q_table = init_q_table(27, 3)
+        q_table = q_premade(q_table)
         #q_file = "./q_new.csv"
-        q_table = load_q_table()
+        #q_table = load_q_table()
         rospy.loginfo("User Choose Learning") 
     else:
         q_table = load_q_table()
@@ -235,9 +249,6 @@ def main(argv):
     l_rate = 0.9
     dis_rate = 0.6
     
-    #Create epsiodes and their length
-    episodes = 10000
-    max_steps = 3000
     while not rospy.is_shutdown():
         for episode in range(episodes):
             terminate = False
@@ -316,7 +327,14 @@ def main(argv):
                 terminate = check_termination(q_table, stuck_inc, step, max_steps, max_stuck)
                 step += 1
                 rospy.loginfo("Step: %d. Stuck: %d", step, stuck_inc) 
-        
+                #Update Experiment table
+                exp_table[episode,0] += reward
+                exp_table[episode,1] = stuck_inc
+                exp_table[episode,2] = step
+
+            #Save Experiment info
+            save_experiment_results(exp_table)
+            
             #Reset world
             reset_world()
 
