@@ -1,0 +1,45 @@
+Hello, this is a comprehensive use of all the provided packages under the catkin_ws/src. The README.md tells you how to install all the estentials and make sure all the necessary defaults like stingray is setup and usable. Stingray basically has the gazebo code and maze that the robot uses. This was not coded by Ryan Reschak
+
+Including the downloads in the README.md, make sure to have the following installed for python2.7:
+numpy (pip install numpy)
+
+Python2.7 works with ROS 1 melodic which is discussed and works with wall_follower and wall_follower_sarsa. It doesn't work with wall_follower_d_l.
+
+If you want to launch it:
+1) Make sure to do a catkin_make and source devel/setup.bash:
+
+2a) roslaunch wall_follower wall_following.launch q_type:=[test or learn]
+
+2b with *_sarsa) roslaunch wall_follower_sarsa wall_following_sarsa.launch q_type:=[test or learn]
+
+q_type:=test => tests on the best file
+q_type:=learn => learn from scratch
+
+You can try running wall_following a few times to see different results
+
+
+
+
+To get wall_follower_d_l working install the following on python3.
+
+numpy (pip3 install numpy)
+tensorflow (pip3 install tensorflow)
+keras (pip3 install keras)
+rospy (pip3 install rospkg catkin_pkg)
+
+To run wall_follower_d_l:
+1) Make sure to do a catkin_make and source devel/setup.bash:
+
+2) In a window:
+roslaunch stingray_sim wall_following_v1.launch
+
+3a) Seperate window
+python3 path/wall_follower_d_l.py learn
+
+3b) Or can try
+rosrun wall_follower_d_l wall_follower_d_l.py learn
+
+
+wall_follower uses q_learning. wall_follower_sarsa uses the SARSA implimentation. wall_follower_d_l uses Deep Learning. The deep learning doesn't work well and can only do learn. Test current produces problems with reading the file.
+
+Contact: Ryan Reschak @ ryanjreschak@mines.edu for help
