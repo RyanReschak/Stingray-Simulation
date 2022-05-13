@@ -48,7 +48,7 @@ class DQL:
     def action_choice(self, state):
         n = np.random.random_sample()
         if (n > self.epsilon):
-            print(self.model.predict(state))
+            #print(self.model.predict(state))
             #print(state)
             return self.predict_action(state) 
         return np.random.randint(low=0,high=self.num_actions)
@@ -73,7 +73,7 @@ class DQL:
 
             self.model.fit(state, target_f, verbose=0)
         
-        print(target_f)
+        #print(target_f)
         
         if episode % self.target_updatet_rate == 0:
             self.target_network = self.model
